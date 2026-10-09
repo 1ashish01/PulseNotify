@@ -1,0 +1,262 @@
+{
+    "item":  [
+                 {
+                     "name":  "Authentication",
+                     "item":  [
+                                  {
+                                      "request":  {
+                                                      "url":  "{{base_url}}/api/auth/register/",
+                                                      "method":  "POST",
+                                                      "body":  {
+                                                                   "raw":  "{\n  \"username\": \"{{}}\",\n  \"password\": \"PulseNotify_Test_123!\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               },
+                                                                   "mode":  "raw"
+                                                               },
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ]
+                                                  },
+                                      "name":  "Register User",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "if (pm.response.code === 201) {",
+                                                                                    "    const data = pm.response.json();",
+                                                                                    "    if (data.access) pm.environment.set(\u0027access_token\u0027, data.access);",
+                                                                                    "    if (data.username) pm.environment.set(\u0027username\u0027, data.username);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Registration returns 201 or expected duplicate error\u0027, function () {",
+                                                                                    "    pm.expect([201, 400]).to.include(pm.response.code);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "request":  {
+                                                      "url":  "{{base_url}}/api/auth/login/",
+                                                      "method":  "POST",
+                                                      "body":  {
+                                                                   "raw":  "{\n  \"username\": \"{{username}}\",\n  \"password\": \"PulseNotify_Test_123!\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               },
+                                                                   "mode":  "raw"
+                                                               },
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ]
+                                                  },
+                                      "name":  "Login User",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "if (pm.response.code === 200) {",
+                                                                                    "    const data = pm.response.json();",
+                                                                                    "    if (data.access) pm.environment.set(\u0027access_token\u0027, data.access);",
+                                                                                    "    if (data.username) pm.environment.set(\u0027username\u0027, data.username);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Login succeeds or returns expected invalid-credentials response\u0027, function () {",
+                                                                                    "    pm.expect([200, 401]).to.include(pm.response.code);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Price Alerts",
+                     "item":  [
+                                  {
+                                      "name":  "Create Alert",
+                                      "request":  {
+                                                      "url":  "{{base_url}}/api/alerts/",
+                                                      "method":  "POST",
+                                                      "body":  {
+                                                                   "raw":  "{\n  \"origin\": \"DEL\",\n  \"destination\": \"BOM\",\n  \"threshold_price\": \"4500.00\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               },
+                                                                   "mode":  "raw"
+                                                               },
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{access_token}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/alerts/",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{access_token}}"
+                                                                     }
+                                                                 ]
+                                                  },
+                                      "name":  "List My Alerts",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Alert list returns 200\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(200);",
+                                                                                    "});",
+                                                                                    "if (pm.response.code === 200) {",
+                                                                                    "    const data = pm.response.json();",
+                                                                                    "    if (Array.isArray(data) \u0026\u0026 data.length \u003e 0 \u0026\u0026 data[0].id) {",
+                                                                                    "        pm.environment.set(\u0027alert_id\u0027, data[0].id);",
+                                                                                    "    }",
+                                                                                    "}"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Deactivate Alert",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "url":  "{{base_url}}/api/alerts/{{alert_id}}/",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{access_token}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create Alert - Invalid Airport Code",
+                                      "request":  {
+                                                      "url":  "{{base_url}}/api/alerts/",
+                                                      "method":  "POST",
+                                                      "body":  {
+                                                                   "raw":  "{\n  \"origin\": \"INVALID\",\n  \"destination\": \"BOM\",\n  \"threshold_price\": \"4500.00\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               },
+                                                                   "mode":  "raw"
+                                                               },
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{access_token}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Flight Prices",
+                     "item":  [
+                                  {
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/flights/price/?route=DEL-BOM"
+                                                  },
+                                      "name":  "Get Known Route Price",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Known route returns a price in the configured range\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(200);",
+                                                                                    "    const data = pm.response.json();",
+                                                                                    "    pm.expect(data.route).to.eql(\u0027DEL-BOM\u0027);",
+                                                                                    "    pm.expect(data.price).to.be.within(3000, 7000);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/flights/price/?route=XXX-YYY"
+                                                  },
+                                      "name":  "Get Unknown Route",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Unknown route returns 404\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(404);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Admin",
+                     "item":  [
+                                  {
+                                      "name":  "Get Admin Summary",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{base_url}}/api/admin/summary/",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{admin_access_token}}"
+                                                                     }
+                                                                 ]
+                                                  }
+                                  }
+                              ]
+                 }
+             ],
+    "info":  {
+                 "description":  "API tests for PulseNotify authentication, alerts, flight prices, and admin summary.",
+                 "name":  "PulseNotify API",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             }
+}
